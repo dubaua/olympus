@@ -12,6 +12,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "accounting": "^0.4.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "lodash": "^4.17.5",
     "node-sass": "^4.7.2",
