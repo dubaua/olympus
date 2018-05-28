@@ -21,7 +21,8 @@
             | р/с {{currentCompany.rs}}
             br
             span.uppercase БИК {{currentCompany.bik}} к/с {{currentCompany.ks}}
-        button.header__set-company.only-app(@click="changeCompany") Изменить компанию
+        select.header__set-company.only-app(v-model="proposal.companyId")
+          option(v-for="company in companies", :value="company.id") {{company.title}}
       .proposal
         .proposal__date {{proposal.date}}
         h1.proposal__title {{proposal.title}}
@@ -85,6 +86,7 @@
           strong Исполнитель:&nbsp;
           | {{proposal.executor}}
         p {{currentCompany.phone}} {{currentCompany.fax}}
+
 </template>
 
 <script>
@@ -839,9 +841,6 @@ export default {
       return accounting.formatNumber(result, 2, ' ').replace('.', ',');
     },
     numberToRoubles,
-    changeCompany() {
-      console.log('Изменить компанию');
-    },
     removeItem(id) {
       console.log('Удалить товар с id =', id);
     },
