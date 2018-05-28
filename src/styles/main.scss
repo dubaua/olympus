@@ -1,5 +1,6 @@
 $primary: #24509c;
 $light: #dde7f8;
+$lighter: #ecf0f7;
 
 body {
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
@@ -106,6 +107,7 @@ body {
 
 .table {
   width: 100%;
+  background: white;
   border-collapse: separate;
   border-spacing: 0;
 
@@ -116,7 +118,13 @@ body {
   }
 
   tr:nth-child(2n + 1) {
-    background: $light;
+    background: $lighter;
+  }
+
+  @media screen {
+    tr:hover {
+      background: $light;
+    }
   }
 
   &__head {
@@ -138,4 +146,15 @@ body {
 
 .footer {
   margin-top: 3em;
+}
+
+.database {
+  position: fixed;
+  border: 10px solid $primary;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-x: auto;
+  overflow-y: scroll;
 }
