@@ -1,3 +1,5 @@
+@import "utility";
+
 $primary: #24509c;
 $light: #dde7f8;
 $lighter: #ecf0f7;
@@ -5,6 +7,9 @@ $lighter: #ecf0f7;
 body {
   @media screen {
     background: $light;
+    .only-print {
+      display: none;
+    }
   }
   @media print {
     .dont-print {
@@ -14,12 +19,10 @@ body {
   }
 }
 
-.nobr {
-  white-space: nowrap;
-}
-
-.pre {
-  white-space: pre-line;
+.input {
+  max-width: 3em;
+  width: auto;
+  text-align: center;
 }
 
 .sheet {
@@ -38,10 +41,6 @@ body {
   }
 }
 
-.uppercase {
-  letter-spacing: 0.05em;
-}
-
 .table {
   width: 100%;
   background: white;
@@ -58,17 +57,6 @@ body {
     background: #ccc;
     font-weight: normal;
     font-style: italic;
-  }
-
-  &__center {
-    text-align: center;
-  }
-  &__left {
-    text-align: left;
-  }
-
-  &__right {
-    text-align: right;
   }
 }
 

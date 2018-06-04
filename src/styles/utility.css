@@ -1,0 +1,24 @@
+.nobr {
+  white-space: nowrap;
+}
+
+.pre {
+  white-space: pre-line;
+}
+
+.tac {
+  text-align: center;
+}
+
+.tal {
+  text-align: left;
+}
+
+.tar {
+  text-align: right;
+}
+
+.uppercase {
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
