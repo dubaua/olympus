@@ -59,14 +59,3 @@ body {
     font-style: italic;
   }
 }
-
-.database {
-  position: fixed;
-  border: 10px solid $primary;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow-x: auto;
-  overflow-y: scroll;
-}
