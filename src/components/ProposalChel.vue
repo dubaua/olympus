@@ -92,7 +92,7 @@
     :isActive="isDatabaseActive",
     @toogle="toggleDatabase",
     @add="addToProposal",
-    :database="database",
+    :products="database",
     :current="proposal.products")
 </template>
 
@@ -200,8 +200,6 @@ export default {
     line-height: 1.5;
     margin-left: 2em;
     text-align: center;
-    big {
-    }
     p {
       line-height: 1.2;
     }

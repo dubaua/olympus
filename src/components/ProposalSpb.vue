@@ -52,11 +52,14 @@
             type="number",
             min="1")
           span.only-print {{item.amount}}
-        td.tar.uppercase.nobr {{ formatPrice(getItemById(item.id).price) }}
-        td.tar.uppercase.nobr {{ formatPrice(getItemById(item.id).price) }}
-        td.tar.uppercase.nobr {{ getItemById(item.id).vat }}
+        td.tar.uppercase.nobr
+          | {{ formatPrice(calculateItemPrice(item.id, item.amount).price) }}
+        td.tar.uppercase.nobr
+          | {{ formatPrice(calculateItemPrice(item.id, item.amount).sum) }}
+        td.tar.uppercase.nobr
+          | {{ formatPrice(calculateItemPrice(item.id, item.amount).vat) }}
         td.tar.nobr.proposal__item.uppercase
-          | {{ calculateSum(getItemById(item.id).price, item.amount) }}
+          | {{ formatPrice(calculateItemPrice(item.id, item.amount).total) }}
           button.proposal__remove.dont-print(@click="removeItem(item.id)") &times;
     tr.dont-print
       td(colspan="7").tac
@@ -66,17 +69,17 @@
       th.tal Итого
       th
       th
-      th.tar.uppercase {{ formatPrice(calculateTotal) }}
-      th.tar.uppercase {{ formatPrice(calculateTotal) }}
-      th.tar.uppercase {{ formatPrice(calculateTotal) }}
+      th.tar.nobr.uppercase {{ formatPrice(calculateTotal.sum) }}
+      th.tar.nobr.uppercase {{ formatPrice(calculateTotal.vat) }}
+      th.tar.nobr.uppercase {{ formatPrice(calculateTotal.total) }}
   p.proposal__note
     | *Цена этих позиций указана с учётом НДС – 18%, в остальных позициях НДС не предусмотрен.
   .proposal__total
     p
       | Всего:
-      strong  {{formatPrice(calculateTotal)}}
-      |  ({{ numberToRoubles(calculateTotal)}})
-      |  в том числе НДС – 0 руб.
+      strong  {{formatPrice(calculateTotal.total)}}
+      |  ({{ numberToRoubles(calculateTotal.total)}})
+      |  в том числе НДС – {{formatPrice(calculateTotal.vat)}} руб.
   .proposal__stamp
     .pre
       | С уважением,
@@ -91,7 +94,7 @@
     :isActive="isDatabaseActive",
     @toogle="toggleDatabase",
     @add="addToProposal",
-    :database="database",
+    :products="database",
     :current="proposal.products")
 </template>
 
@@ -148,8 +151,20 @@ export default {
       return this.companies[this.proposal.companyId];
     },
     calculateTotal() {
-      return Object.values(this.proposal.products).reduce((sum, item) =>
-        sum + (this.getItemById(item.id).price * item.amount), 0);
+      const initialSummary = {
+        sum: 0,
+        vat: 0,
+        total: 0,
+      };
+      /* eslint-disable no-param-reassign */
+      return Object.values(this.proposal.products).reduce((summary, item) => {
+        const itemSummary = this.calculateItemPrice(item.id, item.amount);
+        summary.sum += itemSummary.sum;
+        summary.vat += itemSummary.vat;
+        summary.total += itemSummary.total;
+        return summary;
+      }, initialSummary);
+      /* eslint-enable no-param-reassign */
     },
   },
   methods: {
@@ -158,8 +173,18 @@ export default {
     getItemById(id) {
       return this.database[id];
     },
-    calculateSum(price, amount) {
-      return this.formatPrice(price * amount);
+    calculateItemPrice(id, amount) {
+      const position = this.getItemById(id);
+      const price = position.price;
+      const sum = price * amount;
+      const vat = sum * position.vat * 0.01;
+      const total = sum + vat;
+      return {
+        price,
+        sum,
+        vat,
+        total,
+      };
     },
     removeItem(id) {
       Vue.delete(this.proposal.products, id);
