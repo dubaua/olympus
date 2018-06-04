@@ -3,33 +3,33 @@
   .database__filters
   table.table
     tr.table__head
-      th(colspan="11").table__right
+      th(colspan="11").tar
         button(@click="$emit('toogle')") Закрыть
     tr.table__head
-      th.table__center Код
-      th.table__left Описание как в РУ
-      th.table__left Описание
-      th.table__right Цена, руб.
-      th.table__center НДС
-      th.table__left Направление
-      //- th.table__left Комментарий
-      //- th.table__right Цена за предыдущий период
-      //- th.table__right Разница
-      //- th.table__left Старый код
-      th.table__center Действие
+      th.tac Код
+      th.tal Описание как в РУ
+      th.tal Описание
+      th.tar Цена, руб.
+      th.tac НДС
+      th.tal Направление
+      //- th.tal Комментарий
+      //- th.tar Цена за предыдущий период
+      //- th.tar Разница
+      //- th.tal Старый код
+      th.tac Действие
     template(v-for="item in database")
       tr
-        td.table__center {{ item.id }}
-        td.table__left {{ item.description_rc }}
-        td.table__left {{ item.description }}
-        td.table__right {{ item.price }}
-        td.table__center {{ item.vat }}
-        td.table__left {{ item.section }}
-        //- td.table__left {{ item.comment }}
-        //- td.table__right {{ item.price_prev }}
-        //- td.table__right -
-        //- td.table__left {{ item.code_prev }}
-        td.table__center
+        td.tac {{ item.id }}
+        td.tal {{ item.description_rc }}
+        td.tal {{ item.description }}
+        td.tar {{ item.price }}
+        td.tac {{ item.vat }}
+        td.tal {{ item.section }}
+        //- td.tal {{ item.comment }}
+        //- td.tar {{ item.price_prev }}
+        //- td.tar -
+        //- td.tal {{ item.code_prev }}
+        td.tac
           template(v-if="alreadyExist(item.id)") Добавлено
           button(@click="add(item)", v-else) Добавить
 </template>
