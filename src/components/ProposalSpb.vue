@@ -1,39 +1,24 @@
 <template lang="pug">
 .proposal
-  .header
-    .header__logo(v-if="currentCompany.logo")
-      img(:src="currentCompany.logo.path", :title="currentCompany.title")
-    .header__details
-      p
-        | {{ currentCompany.legalFrom }}
+  .proposal__header
+    .proposal__company-title.uppercase
+      | {{ currentCompany.legalFrom }} «{{ currentCompany.title }}»
+    .proposal__company-info
+        | {{ currentCompany.address }}
         br
-        strong {{ currentCompany.title }}
-      p
-        | Юридический адрес: {{ currentCompany.address }}
-        br
-        | Телефон: {{ currentCompany.phone }} Факс: {{ currentCompany.fax }}
-        br
-        | Электронная почта: {{ currentCompany.email }}
-      p
-        span.uppercase ИНН {{ currentCompany.inn }} КПП {{ currentCompany.kpp }}
-        br
-        | р/с {{ currentCompany.rs }}
-        br
-        span.uppercase БИК {{ currentCompany.bik }} к/с {{ currentCompany.ks }}
+        span.uppercase ОКПО {{currentCompany.okpo}}, ОГРН {{currentCompany.ogrn}},&nbsp;
+          | ИНН/КПП {{ currentCompany.inn }}/{{ currentCompany.kpp }}
   .proposal__date
-    editable(v-model="proposal.date")
+    | Дата: {{proposal.date}}
+  p
+    | Покупатель:&nbsp;
+    editable(v-model="proposal.buyer")
   h1.proposal__title
     editable(v-model="proposal.title")
   dl.proposal__details
     .proposal__term
-      dt Покупатель:
-      dd: editable(v-model="proposal.buyer")
-    .proposal__term
       dt Наименование:
       dd: editable(v-model="proposal.nomination")
-    .proposal__term
-      dt Срок действия:
-      dd: editable(v-model="proposal.limitation")
     .proposal__term
       dt Условия оплаты:
       dd: editable(v-model="proposal.terms_of_payment")
@@ -41,74 +26,92 @@
       dt Срок поставки:
       dd: editable(v-model="proposal.delivery_time")
     .proposal__term
-      dt Гарантия:
-      dd: editable(v-model="proposal.guarantee")
-    .proposal__term
       dt Условия поставки:
       dd: editable(v-model="proposal.delivery_conditions")
+    .proposal__term
+      dt Срок действия:
+      dd: editable(v-model="proposal.limitation")
+  .proposal__spec.tac
+    | СПЕЦИФИКАЦИЯ к коммерческому предложению
   table.table
     tr.table__head
-      th.table__center №
-      th.table__left Наименование
-      th.table__right Цена, руб.
-      th.table__center Количество
-      th.table__right Сумма, руб.
-    template(v-for="(item, key, index) in proposal.goods")
+      th.tac(width="20") №
+      th.tal Наименование
+      th.tac(width="50") Кол-во
+      th.tar(width="80") Цена (руб.)
+      th.tar(width="80") Сумма (руб.)
+      th.tar(width="80") Сумма НДС (руб.)
+      th.tar(width="80") Итого (руб.)
+    template(v-for="(item, key, index) in proposal.products")
       tr
-        td.table__center {{ index+1 }}
-        td.table__left {{ getItemById(item.id).description_rc }}
-        td.table__right.nobr: span.uppercase {{ formatPrice(getItemById(item.id).price) }}
-        td.table__center: input.table__center.proposal__input(
-          v-model.number="item.amount",
-          type="number")
-        td.table__right.nobr.proposal__item: span.uppercase
+        td.tac {{ index+1 }}
+        td.tal {{ getItemById(item.id).description_rc }}
+        td.tac
+          input.input.dont-print(
+            v-model.number="item.amount",
+            type="number",
+            min="1")
+          span.only-print {{item.amount}}
+        td.tar.uppercase.nobr {{ formatPrice(getItemById(item.id).price) }}
+        td.tar.uppercase.nobr {{ formatPrice(getItemById(item.id).price) }}
+        td.tar.uppercase.nobr {{ getItemById(item.id).vat }}
+        td.tar.nobr.proposal__item.uppercase
           | {{ calculateSum(getItemById(item.id).price, item.amount) }}
           button.proposal__remove.dont-print(@click="removeItem(item.id)") &times;
     tr.dont-print
-      td(colspan="5").table__center
+      td(colspan="7").tac
         button(@click="toggleDatabase") Добавить
     tr
       th
-      th.table__left Итого
+      th.tal Итого
       th
       th
-      th.table__right {{ formatPrice(calculateTotal) }}
-  p * Цена этих позиций указана с учетом НДС 18%, в остальных позициях НДС не предусмотрен
-  p ** Цена этих позиций указана с учетом НДС 10%, в остальных позициях НДС не предусмотрен
-  p
-    strong Итого: {{ numberToRoubles(calculateTotal) }},&nbsp;
-    | НДС не предусмотрен в связи с применением упрощенной системы налогообложения.
-  .footer
+      th.tar.uppercase {{ formatPrice(calculateTotal) }}
+      th.tar.uppercase {{ formatPrice(calculateTotal) }}
+      th.tar.uppercase {{ formatPrice(calculateTotal) }}
+  p.proposal__note
+    | *Цена этих позиций указана с учётом НДС – 18%, в остальных позициях НДС не предусмотрен.
+  .proposal__total
     p
-      strong Исполнитель:&nbsp;
-      | {{ proposal.executor }}
-    p {{ currentCompany.phone }} {{ currentCompany.fax }}
+      | Всего:
+      strong  {{formatPrice(calculateTotal)}}
+      |  ({{ numberToRoubles(calculateTotal)}})
+      |  в том числе НДС – 0 руб.
+  .proposal__stamp
+    .pre
+      | С уважением,
+      | Директор
+    | Никандров М.Г.
+  .proposal__footer
+    | Исполнитель:&nbsp;
+    editable(v-model="proposal.executor")
+    br
+    | Тел.: {{ currentCompany.phone }}
   products(
     :isActive="isDatabaseActive",
     @toogle="toggleDatabase",
     @add="addToProposal",
-    :database="database")
+    :database="database",
+    :current="proposal.products")
 </template>
 
 <script>
 import Vue from 'vue';
-import accounting from 'accounting';
 import numberToRoubles from '@/utils/rubles';
+import { formatPrice } from '@/utils';
 import database from '@/api/hashMap.lite';
 import companies from '@/api/companies';
 /* eslint-disable no-console, no-plusplus */
 export default {
   name: 'ProposalChel',
-  components: {
-  },
   data() {
     return {
       companies,
       database,
       proposal: {
         id: 231,
-        companyId: 'endomed_chel',
-        title: 'Коммерческое предложение № 424\nпо оснащению оборудованием ф. Олимпас',
+        companyId: 'endomed_spb',
+        title: 'Коммерческое предложение № 424',
         date: '08 мая 2018 г.', // create datepicker
         buyer: 'МБУЗ "ГОРОДСКАЯ БОЛЬНИЦА №6" г. Челябинск',
         nomination: 'Поставка комплектующих для эндоскопа',
@@ -117,7 +120,7 @@ export default {
         delivery_time: 'В течение 8-12 недель (или ранее при наличии на складе)',
         guarantee: '12 месяцев с момента ввода в эксплуатацию',
         delivery_conditions: 'Склад покупателя, включая монтаж, ввод в эксплуатацию, обучение мед. персонала',
-        goods: {
+        products: {
           4976200: {
             id: 4976200,
             amount: 1,
@@ -145,30 +148,24 @@ export default {
       return this.companies[this.proposal.companyId];
     },
     calculateTotal() {
-      return Object.values(this.proposal.goods).reduce((sum, item) =>
-        sum + (this.unformat(this.getItemById(item.id).price) * item.amount), 0);
+      return Object.values(this.proposal.products).reduce((sum, item) =>
+        sum + (this.getItemById(item.id).price * item.amount), 0);
     },
   },
   methods: {
+    numberToRoubles,
+    formatPrice,
     getItemById(id) {
       return this.database[id];
     },
     calculateSum(price, amount) {
-      return this.formatPrice(this.unformat(price) * amount);
+      return this.formatPrice(price * amount);
     },
-    unformat(price) {
-      return parseFloat(price.replace(',', '.'));
-    },
-    formatPrice(price) {
-      const result = typeof price === 'string' ? this.unformat(price) : price;
-      return accounting.formatNumber(result, 2, ' ').replace('.', ',');
-    },
-    numberToRoubles,
     removeItem(id) {
-      Vue.delete(this.proposal.goods, id);
+      Vue.delete(this.proposal.products, id);
     },
     addToProposal(id) {
-      Vue.set(this.proposal.goods, id, {
+      Vue.set(this.proposal.products, id, {
         id,
         amount: 1,
       });
@@ -179,43 +176,44 @@ export default {
   },
 };
 </script>
-
 <style lang="scss" scoped>
-.header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 4em;
-  position: relative;
-
-  &__details {
-    flex-grow: 1;
-    line-height: 1.5;
-    margin-left: 2em;
-  }
-
-  &__set-company {
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
-}
-
 .proposal {
   font-family: "Times New Roman", Times, serif;
+
+  &__header {
+    margin-bottom: 1em;
+    position: relative;
+    hr {
+      border: double black;
+      border-width: 6px 0;
+      margin: 0.5em 0;
+    }
+  }
+  &__company-title {
+    text-align: center;
+    margin-bottom: 0.33em;
+    font-size: 3em;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  &__company-info {
+    font-size: 1.2em;
+    line-height: 1.3;
+    text-align: center;
+  }
   &__date {
     text-align: right;
   }
   &__title {
-    white-space: pre-line;
     text-align: center;
-    margin-bottom: 1em;
+    font-size: 1.2em;
   }
   &__details {
-    margin: 1em 0 3em;
+    margin: 1em 0;
   }
   &__term {
     display: flex;
-    margin: 1em 0;
+    margin: 0.33em 0;
 
     & dt {
       flex-basis: 10em;
@@ -246,9 +244,21 @@ export default {
     left: calc(100% + 1em);
     top: 0.67em;
   }
-}
-
-.footer {
-  margin-top: 3em;
+  &__note {
+    font-size: smaller;
+    margin-top: 0;
+  }
+  &__total {
+    margin-top: 3em;
+  }
+  &__stamp {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin: 7em 0;
+  }
+  &__footer {
+    margin-top: 6em;
+  }
 }
 </style>

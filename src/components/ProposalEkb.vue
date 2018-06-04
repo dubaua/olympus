@@ -1,36 +1,33 @@
 <template lang="pug">
 .proposal
-  .header
-    .header__logo(v-if="currentCompany.logo")
-      img(:src="currentCompany.logo.path", :title="currentCompany.title")
-    .header__details
-      p
-        | {{ currentCompany.legalFrom }}
+  .proposal__header
+    hr
+    .proposal__company-title.pre
+      h2 {{ currentCompany.legalFrom }}
+      h1 «{{ currentCompany.title }}»
+    .proposal__company-info
+      .proposal__col
+        | {{ currentCompany.address }}
         br
-        strong {{ currentCompany.title }}
-      p
-        | Юридический адрес: {{ currentCompany.address }}
+        | Тел./Факс: {{ currentCompany.phone }}
         br
-        | Телефон: {{ currentCompany.phone }} Факс: {{ currentCompany.fax }}
-        br
-        | Электронная почта: {{ currentCompany.email }}
-      p
+        | e-mail: {{ currentCompany.email }}
+      .proposal__col.proposal__col--last.pre
         span.uppercase ИНН {{ currentCompany.inn }} КПП {{ currentCompany.kpp }}
         br
         | р/с {{ currentCompany.rs }}
         br
         span.uppercase БИК {{ currentCompany.bik }} к/с {{ currentCompany.ks }}
-  .proposal__date
-    editable(v-model="proposal.date")
+    hr
+  .proposal__thanks.pre
+    | Благодарим Вас за запрос на медицинскую технику OLYMPUS
+    | и направляем Вам коммерческое предложение на следующих условиях
   h1.proposal__title
     editable(v-model="proposal.title")
   dl.proposal__details
     .proposal__term
       dt Покупатель:
       dd: editable(v-model="proposal.buyer")
-    .proposal__term
-      dt Наименование:
-      dd: editable(v-model="proposal.nomination")
     .proposal__term
       dt Срок действия:
       dd: editable(v-model="proposal.limitation")
@@ -41,73 +38,74 @@
       dt Срок поставки:
       dd: editable(v-model="proposal.delivery_time")
     .proposal__term
-      dt Гарантия:
-      dd: editable(v-model="proposal.guarantee")
-    .proposal__term
       dt Условия поставки:
       dd: editable(v-model="proposal.delivery_conditions")
+    .proposal__term
+      dt Гарантия:
+      dd: editable(v-model="proposal.guarantee")
   table.table
     tr.table__head
-      th.table__center №
-      th.table__left Наименование
-      th.table__right Цена, руб.
-      th.table__center Количество
-      th.table__right Сумма, руб.
-    template(v-for="(item, key, index) in proposal.goods")
+      th.tac(width="20") №
+      th.tal Наименование
+      th.tac(width="50") Кол-во
+      th.tar(width="100") Цена в&nbsp;рублях
+      th.tar(width="100") Сумма в&nbsp;рублях
+    template(v-for="(item, key, index) in proposal.products")
       tr
-        td.table__center {{ index+1 }}
-        td.table__left {{ getItemById(item.id).description_rc }}
-        td.table__right.nobr: span.uppercase {{ formatPrice(getItemById(item.id).price) }}
-        td.table__center: input.table__center.proposal__input(
-          v-model.number="item.amount",
-          type="number")
-        td.table__right.nobr.proposal__item: span.uppercase
+        td.tac {{ index+1 }}
+        td.tal {{ getItemById(item.id).description_rc }}
+        td.tac
+          input.input.dont-print(
+            v-model.number="item.amount",
+            type="number",
+            min="1")
+          span.only-print {{item.amount}}
+        td.tar.uppercase.nobr {{ formatPrice(getItemById(item.id).price) }}
+        td.tar.nobr.proposal__item.uppercase
           | {{ calculateSum(getItemById(item.id).price, item.amount) }}
           button.proposal__remove.dont-print(@click="removeItem(item.id)") &times;
     tr.dont-print
-      td(colspan="5").table__center
+      td(colspan="5").tac
         button(@click="toggleDatabase") Добавить
     tr
       th
-      th.table__left Итого
+      th.tal Итого
       th
       th
-      th.table__right {{ formatPrice(calculateTotal) }}
-  p * Цена этих позиций указана с учетом НДС 18%, в остальных позициях НДС не предусмотрен
-  p ** Цена этих позиций указана с учетом НДС 10%, в остальных позициях НДС не предусмотрен
+      th.tar.uppercase {{ formatPrice(calculateTotal) }}
   p
     strong Итого: {{ numberToRoubles(calculateTotal) }},&nbsp;
-    | НДС не предусмотрен в связи с применением упрощенной системы налогообложения.
-  .footer
+    | НДС не облагается
+  .proposal__footer
     p
-      strong Исполнитель:&nbsp;
-      | {{ proposal.executor }}
-    p {{ currentCompany.phone }} {{ currentCompany.fax }}
+      strong С уважением, специалист отдела продаж -&nbsp;{{ proposal.executor }}
+      br
+      | тел.: {{ currentCompany.phone }}, e-mail: {{ currentCompany.email }}
+    p *Компания применяет упрощенную систему налогообложения
   products(
     :isActive="isDatabaseActive",
     @toogle="toggleDatabase",
     @add="addToProposal",
-    :database="database")
+    :database="database",
+    :current="proposal.products")
 </template>
 
 <script>
 import Vue from 'vue';
-import accounting from 'accounting';
 import numberToRoubles from '@/utils/rubles';
+import { formatPrice } from '@/utils';
 import database from '@/api/hashMap.lite';
 import companies from '@/api/companies';
 /* eslint-disable no-console, no-plusplus */
 export default {
   name: 'ProposalChel',
-  components: {
-  },
   data() {
     return {
       companies,
       database,
       proposal: {
         id: 231,
-        companyId: 'endomed_chel',
+        companyId: 'endomed_ekb',
         title: 'Коммерческое предложение № 424\nпо оснащению оборудованием ф. Олимпас',
         date: '08 мая 2018 г.', // create datepicker
         buyer: 'МБУЗ "ГОРОДСКАЯ БОЛЬНИЦА №6" г. Челябинск',
@@ -117,7 +115,7 @@ export default {
         delivery_time: 'В течение 8-12 недель (или ранее при наличии на складе)',
         guarantee: '12 месяцев с момента ввода в эксплуатацию',
         delivery_conditions: 'Склад покупателя, включая монтаж, ввод в эксплуатацию, обучение мед. персонала',
-        goods: {
+        products: {
           4976200: {
             id: 4976200,
             amount: 1,
@@ -145,30 +143,24 @@ export default {
       return this.companies[this.proposal.companyId];
     },
     calculateTotal() {
-      return Object.values(this.proposal.goods).reduce((sum, item) =>
-        sum + (this.unformat(this.getItemById(item.id).price) * item.amount), 0);
+      return Object.values(this.proposal.products).reduce((sum, item) =>
+        sum + (this.getItemById(item.id).price * item.amount), 0);
     },
   },
   methods: {
+    numberToRoubles,
+    formatPrice,
     getItemById(id) {
       return this.database[id];
     },
     calculateSum(price, amount) {
-      return this.formatPrice(this.unformat(price) * amount);
+      return this.formatPrice(price * amount);
     },
-    unformat(price) {
-      return parseFloat(price.replace(',', '.'));
-    },
-    formatPrice(price) {
-      const result = typeof price === 'string' ? this.unformat(price) : price;
-      return accounting.formatNumber(result, 2, ' ').replace('.', ',');
-    },
-    numberToRoubles,
     removeItem(id) {
-      Vue.delete(this.proposal.goods, id);
+      Vue.delete(this.proposal.products, id);
     },
     addToProposal(id) {
-      Vue.set(this.proposal.goods, id, {
+      Vue.set(this.proposal.products, id, {
         id,
         amount: 1,
       });
@@ -179,48 +171,70 @@ export default {
   },
 };
 </script>
-
 <style lang="scss" scoped>
-.header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 4em;
-  position: relative;
-
-  &__details {
-    flex-grow: 1;
-    line-height: 1.5;
-    margin-left: 2em;
-  }
-
-  &__set-company {
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
-}
-
 .proposal {
   font-family: "Century Gothic", Futura, sans-serif;
+
+  &__header {
+    margin-bottom: 1em;
+    position: relative;
+    hr {
+      border: double black;
+      border-width: 6px 0;
+      margin: 0.5em 0;
+    }
+  }
+  &__company-title {
+    text-align: center;
+    margin-bottom: 1em;
+    h1 {
+      margin: 0;
+      font-size: 3em;
+    }
+    h2 {
+      margin: 0;
+      font-size: 1.2em;
+      text-transform: uppercase;
+    }
+  }
+  &__company-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2em;
+    line-height: 1.3;
+  }
+  &__col {
+    &--last {
+      text-align: right;
+    }
+  }
+  &__thanks {
+    font-style: italic;
+    font-weight: bold;
+    font-size: 1.4em;
+    text-align: center;
+  }
   &__date {
     text-align: right;
   }
   &__title {
-    white-space: pre-line;
     text-align: center;
-    margin-bottom: 1em;
+    font-size: 1.6em;
   }
   &__details {
-    margin: 1em 0 3em;
+    margin: 1em 0;
   }
   &__term {
     display: flex;
-    margin: 1em 0;
+    margin: 0.5em 0;
 
     & dt {
       flex-basis: 10em;
       min-width: 10em;
       font-weight: bold;
+      text-align: right;
+      margin-right: 1em;
     }
 
     & dd {
@@ -246,9 +260,9 @@ export default {
     left: calc(100% + 1em);
     top: 0.67em;
   }
-}
-
-.footer {
-  margin-top: 3em;
+  &__footer {
+    margin-top: 3em;
+    text-align: center;
+  }
 }
 </style>

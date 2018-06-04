@@ -46,33 +46,38 @@
     .proposal__term
       dt Условия поставки:
       dd: editable(v-model="proposal.delivery_conditions")
+  .proposal__spec
+    | Спецификация к коммерческому предложению
   table.table
     tr.table__head
-      th.table__center №
-      th.table__left Наименование
-      th.table__right Цена, руб.
-      th.table__center Количество
-      th.table__right Сумма, руб.
+      th.tac №
+      th.tal Наименование
+      th.tar Цена (руб.)
+      th.tac Кол-во
+      th.tar Сумма (руб.)
     template(v-for="(item, key, index) in proposal.products")
       tr
-        td.table__center {{ index+1 }}
-        td.table__left {{ getItemById(item.id).description_rc }}
-        td.table__right.uppercase.nobr {{ formatPrice(getItemById(item.id).price) }}
-        td.table__center: input.table__center.proposal__input(
-          v-model.number="item.amount",
-          type="number")
-        td.table__right.nobr.proposal__item.uppercase
+        td.tac {{ index+1 }}
+        td.tal {{ getItemById(item.id).description_rc }}
+        td.tar.uppercase.nobr {{ formatPrice(getItemById(item.id).price) }}
+        td.tac
+          input.input.dont-print(
+            v-model.number="item.amount",
+            type="number",
+            min="1")
+          span.only-print {{item.amount}}
+        td.tar.nobr.proposal__item.uppercase
           | {{ calculateSum(getItemById(item.id).price, item.amount) }}
           button.proposal__remove.dont-print(@click="removeItem(item.id)") &times;
     tr.dont-print
-      td(colspan="5").table__center
+      td(colspan="5").tac
         button(@click="toggleDatabase") Добавить
     tr
       th
-      th.table__left Итого
+      th.tal Итого
       th
       th
-      th.table__right.uppercase {{ formatPrice(calculateTotal) }}
+      th.tar.uppercase {{ formatPrice(calculateTotal) }}
   p * Цена этих позиций указана с учетом НДС 18%, в остальных позициях НДС не предусмотрен
   p ** Цена этих позиций указана с учетом НДС 10%, в остальных позициях НДС не предусмотрен
   p
@@ -93,15 +98,13 @@
 
 <script>
 import Vue from 'vue';
-import accounting from 'accounting';
 import numberToRoubles from '@/utils/rubles';
+import { formatPrice } from '@/utils';
 import database from '@/api/hashMap.lite';
 import companies from '@/api/companies';
 /* eslint-disable no-console, no-plusplus */
 export default {
   name: 'ProposalChel',
-  components: {
-  },
   data() {
     return {
       companies,
@@ -147,24 +150,18 @@ export default {
     },
     calculateTotal() {
       return Object.values(this.proposal.products).reduce((sum, item) =>
-        sum + (this.unformat(this.getItemById(item.id).price) * item.amount), 0);
+        sum + (this.getItemById(item.id).price * item.amount), 0);
     },
   },
   methods: {
+    numberToRoubles,
+    formatPrice,
     getItemById(id) {
       return this.database[id];
     },
     calculateSum(price, amount) {
-      return this.formatPrice(this.unformat(price) * amount);
+      return this.formatPrice(price * amount);
     },
-    unformat(price) {
-      return parseFloat(price.replace(',', '.'));
-    },
-    formatPrice(price) {
-      const result = typeof price === 'string' ? this.unformat(price) : price;
-      return accounting.formatNumber(result, 2, ' ').replace('.', ',');
-    },
-    numberToRoubles,
     removeItem(id) {
       Vue.delete(this.proposal.products, id);
     },
@@ -187,7 +184,7 @@ export default {
   &__header {
     display: flex;
     align-items: center;
-    margin-bottom: 4em;
+    margin-bottom: 2em;
     position: relative;
     border-bottom: 8px double black;
   }
@@ -219,7 +216,7 @@ export default {
     margin-bottom: 1em;
   }
   &__details {
-    margin: 1em 0 3em;
+    margin: 1em 0;
   }
   &__term {
     display: flex;
@@ -235,6 +232,12 @@ export default {
       margin: 0;
       flex-grow: 1;
     }
+  }
+  &__spec {
+    font-weight: bold;
+    font-size: 1.3em;
+    text-align: center;
+    margin: 0.5em;
   }
 
   &__input {
