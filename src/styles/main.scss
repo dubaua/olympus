@@ -18,6 +18,10 @@ body {
   white-space: nowrap;
 }
 
+.pre {
+  white-space: pre-line;
+}
+
 .sheet {
   display: flex;
   flex-direction: column;
